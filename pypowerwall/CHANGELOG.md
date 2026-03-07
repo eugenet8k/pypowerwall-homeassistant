@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+- Fix: add `build.yaml` to set `BUILD_FROM=jasonacox/pypowerwall` — without it
+  the HA Supervisor overrides `BUILD_FROM` with its own base image, causing the
+  container to crash on start
+
 ## 0.1.3
 
 - Switch back to bridge networking so the add-on gets a hostname (`pypowerwall`)

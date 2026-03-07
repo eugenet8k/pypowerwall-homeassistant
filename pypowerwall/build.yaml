@@ -1,0 +1,3 @@
+build_from:
+  amd64: "jasonacox/pypowerwall"
+  aarch64: "jasonacox/pypowerwall"

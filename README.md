@@ -4,6 +4,31 @@ Home Assistant add-on repository that wraps
 [jasonacox/pypowerwall](https://github.com/jasonacox/pypowerwall) into a
 supervised HA add-on.
 
+## Why this add-on?
+
+The official Tesla integrations for Home Assistant expose common sensors like
+battery level, solar production, and grid power. However, they **do not** expose
+advanced electrical metrics available from the Powerwall Gateway's local API:
+
+- **Reactive power** (var) — site, battery, load, solar
+- **Apparent power** (VA) — site, battery, load, solar
+- **Power factor**
+- **Voltage / current per phase**
+- **Frequency**
+
+This add-on runs [pypowerwall](https://github.com/jasonacox/pypowerwall) as a
+local API proxy that talks directly to your Powerwall Gateway, exposing all of
+this data via a simple REST API. You can then create **REST sensors** in Home
+Assistant for any metric the Gateway reports.
+
+### Real-world use case
+
+Tesla Powerwall has a ~5 kVA apparent power limit for backup mode. If your
+home's reactive power is high (large AC compressors, motors, etc.), the
+Powerwall may refuse to enter backup mode. Monitoring reactive and apparent
+power lets you identify the problem — something impossible with the standard
+Tesla integrations.
+
 ## Installation
 
 1. In Home Assistant go to **Settings → Add-ons → Add-on Store**.
@@ -29,6 +54,63 @@ After installing, open the add-on's **Configuration** tab and set:
 | `PW_TIMEZONE` | no       | `America/Los_Angeles` |
 
 See [pypowerwall/DOCS.md](pypowerwall/DOCS.md) for the full option reference.
+
+## API URL — internal vs. external
+
+| Where you're calling from                               | URL to use                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------------ |
+| **HA `configuration.yaml`** (REST sensors, automations) | `http://04ed3140-pypowerwall:8675/`                          |
+| **Browser / LAN devices**                               | `http://homeassistant.local:8675/` or `http://<ha-ip>:8675/` |
+
+> The internal hostname (`04ed3140-pypowerwall`) only works inside the HA Docker
+> network — from `configuration.yaml`, other add-ons, and automations. It will
+> **not** resolve from your browser. For browser access, use the HA host IP with
+> port 8675.
+>
+> **Note:** The prefix `04ed3140` is unique to each HA installation. Check your
+> add-on's **Info** tab for the actual hostname assigned to your instance.
+
+## REST sensor examples
+
+This is the primary use case — create REST sensors in `configuration.yaml` to
+get the advanced metrics not available in standard Tesla integrations.
+
+```yaml
+rest:
+  - resource: http://04ed3140-pypowerwall:8675/aggregates
+    scan_interval: 10
+    verify_ssl: false
+    sensor:
+      - name: 'Gateway Site Reactive Power'
+        unique_id: gateway_site_reactive_power
+        value_template:
+          '{{ value_json.site.instant_reactive_power | float | round(0) }}'
+        unit_of_measurement: 'var'
+        device_class: reactive_power
+        state_class: measurement
+
+      - name: 'Gateway Site Apparent Power'
+        unique_id: gateway_site_apparent_power
+        value_template:
+          '{{ value_json.site.instant_apparent_power | float | round(0) }}'
+        unit_of_measurement: 'VA'
+        device_class: apparent_power
+        state_class: measurement
+
+      - name: 'Gateway Site Frequency'
+        unique_id: gateway_site_frequency
+        value_template: '{{ value_json.site.frequency | float | round(2) }}'
+        unit_of_measurement: 'Hz'
+        device_class: frequency
+        state_class: measurement
+```
+
+The same pattern works for `battery`, `load`, and `solar` — just replace `site`
+in the `value_template`. Browse `/aggregates` in your browser to see all
+available fields. Keep all sensors under one `resource` block to avoid redundant
+API calls.
+
+See [pypowerwall/DOCS.md](pypowerwall/DOCS.md) for more details.
 
 ## How it works
 

@@ -1,0 +1,35 @@
+name: "PyPowerwall"
+version: "0.1.0"
+slug: "pypowerwall"
+description: "Tesla Powerwall Monitor & API Proxy — powered by jasonacox/pypowerwall"
+url: "https://github.com/eugenet8k/pypowerwall-homeassistant"
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: auto
+init: false
+ports:
+  8675/tcp: 8675
+ports_description:
+  8675/tcp: "PyPowerwall API & Dashboard"
+options:
+  PW_EMAIL: ""
+  PW_PASSWORD: ""
+  PW_HOST: ""
+  PW_PORT: 8675
+  PW_TIMEZONE: "America/Los_Angeles"
+  PW_CACHE_EXPIRE: 5
+  PW_DEBUG: "no"
+  PW_HTTPS: "no"
+  PW_STYLE: "solar"
+schema:
+  PW_EMAIL: str
+  PW_PASSWORD: password
+  PW_HOST: str
+  PW_PORT: port
+  PW_TIMEZONE: str
+  PW_CACHE_EXPIRE: int
+  PW_DEBUG: "list(yes|no)"
+  PW_HTTPS: "list(yes|no)"
+  PW_STYLE: str

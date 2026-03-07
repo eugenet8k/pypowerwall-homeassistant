@@ -1,5 +1,5 @@
 name: "PyPowerwall"
-version: "0.1.0"
+version: "0.1.1"
 slug: "pypowerwall"
 description: "Tesla Powerwall Monitor & API Proxy — powered by jasonacox/pypowerwall"
 url: "https://github.com/eugenet8k/pypowerwall-homeassistant"

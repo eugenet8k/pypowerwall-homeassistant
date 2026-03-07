@@ -1,5 +1,5 @@
 name: "PyPowerwall"
-version: "0.1.1"
+version: "0.1.2"
 slug: "pypowerwall"
 description: "Tesla Powerwall Monitor & API Proxy — powered by jasonacox/pypowerwall"
 url: "https://github.com/eugenet8k/pypowerwall-homeassistant"
@@ -8,6 +8,7 @@ arch:
   - amd64
 startup: application
 boot: auto
+host_network: true
 init: false
 ports:
   8675/tcp: 8675

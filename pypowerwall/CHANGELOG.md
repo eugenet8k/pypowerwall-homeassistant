@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5
+
+- Fix: rewrite `run.sh` — use Python for reliable JSON parsing, add diagnostic
+  logging, add fallback CMD if `$@` is empty
+
 ## 0.1.4
 
 - Fix: add `build.yaml` to set `BUILD_FROM=jasonacox/pypowerwall` — without it

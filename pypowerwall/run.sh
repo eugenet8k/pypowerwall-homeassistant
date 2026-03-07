@@ -5,28 +5,44 @@
 # exports every key=value as an environment variable, then
 # exec's the original upstream CMD.
 
+set -e
+
 CONFIG="/data/options.json"
 
+echo "[ha-addon] Starting entrypoint..."
+echo "[ha-addon] CMD args: $*"
+echo "[ha-addon] Working dir: $(pwd)"
+
 if [ -f "$CONFIG" ]; then
-    # Parse each top-level key/value from the JSON and export as env vars.
-    # Works with any POSIX shell — no jq or python required.
-    # Handles string, number, and boolean values.
-    eval "$(
-        sed -e 's/^{//' -e 's/}$//' -e 's/^ *//' "$CONFIG" \
-        | grep -v '^\s*$' \
-        | sed -e 's/^"\([^"]*\)": *"\(.*\)".*$/export \1="\2"/' \
-              -e 's/^"\([^"]*\)": *\([0-9][0-9]*\).*$/export \1="\2"/' \
-              -e 's/^"\([^"]*\)": *true.*$/export \1="true"/' \
-              -e 's/^"\([^"]*\)": *false.*$/export \1="false"/'
-    )"
+    echo "[ha-addon] Loading configuration from $CONFIG"
+
+    # Use python3 for reliable JSON parsing (available in pypowerwall image)
+    eval "$(python3 -c "
+import json, shlex
+with open('$CONFIG') as f:
+    opts = json.load(f)
+for k, v in opts.items():
+    if isinstance(v, bool):
+        v = 'true' if v else 'false'
+    print(f'export {k}={shlex.quote(str(v))}')
+")"
 
     # Mirror PW_TIMEZONE → TZ
     if [ -n "$PW_TIMEZONE" ] && [ -z "$TZ" ]; then
         export TZ="$PW_TIMEZONE"
     fi
 
-    echo "[ha-addon] Configuration loaded from $CONFIG"
+    echo "[ha-addon] Configuration loaded"
+else
+    echo "[ha-addon] No $CONFIG found, starting with default env"
 fi
 
 # Exec the CMD passed by Docker (inherited from upstream image)
-exec "$@"
+if [ $# -gt 0 ]; then
+    echo "[ha-addon] Executing: $*"
+    exec "$@"
+else
+    # Fallback: upstream pypowerwall default
+    echo "[ha-addon] No CMD inherited, falling back to: python3 server.py"
+    exec python3 server.py
+fi

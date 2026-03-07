@@ -1,9 +1,14 @@
 # Changelog
 
+## 0.1.3
+
+- Switch back to bridge networking so the add-on gets a hostname (`pypowerwall`)
+- Port 8675 exposed via standard port mapping
+
 ## 0.1.2
 
-- Fix: enable `host_network: true` so port 8675 is reachable and the add-on
-  can reach the Powerwall gateway on the LAN
+- Fix: enable `host_network: true` so port 8675 is reachable and the add-on can
+  reach the Powerwall gateway on the LAN
 
 ## 0.1.1
 

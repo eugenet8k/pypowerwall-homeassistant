@@ -125,61 +125,6 @@ small Python entrypoint (`run.py`):
 This means **any** update to `jasonacox/pypowerwall` is picked up automatically
 when you rebuild the add-on.
 
----
-
-## Using this as a template for other Docker images
-
-The structure is intentionally generic. To wrap **any** Docker image as an HA
-add-on:
-
-1. Copy the `pypowerwall/` directory and rename it (e.g. `my-app/`).
-2. Edit `Dockerfile` — change the `BUILD_FROM` default to your image:
-
-   ```dockerfile
-   ARG BUILD_FROM=your-org/your-image:tag
-   FROM ${BUILD_FROM}
-   ```
-
-3. Edit `config.yaml`:
-   - Change `name`, `slug`, `description`, `version`.
-   - Update `ports` to match your image's exposed port(s).
-   - Replace `options` / `schema` with the environment variables your image
-     expects.
-4. `run.py` needs **no changes** — it already exports all options as env vars
-   and exec's the upstream CMD.
-5. Commit, push, and add the repo to your HA instance.
-
-### Example: wrapping `linuxserver/code-server`
-
-```yaml
-# my-codeserver/config.yaml
-name: 'Code Server'
-version: '0.1.0'
-slug: 'codeserver'
-description: 'VS Code in the browser'
-arch: [aarch64, amd64]
-init: false
-ports:
-  8443/tcp: 8443
-options:
-  PASSWORD: ''
-  SUDO_PASSWORD: ''
-  TZ: 'America/Los_Angeles'
-schema:
-  PASSWORD: password
-  SUDO_PASSWORD: password
-  TZ: str
-```
-
-```dockerfile
-# my-codeserver/Dockerfile
-ARG BUILD_FROM=linuxserver/code-server
-FROM ${BUILD_FROM}
-COPY run.py /ha_run.py
-ENTRYPOINT ["python3", "/ha_run.py"]
-```
-
-That's it — the same `run.py` handles the rest.
 
 ## Repository layout
 
